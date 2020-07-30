@@ -1,7 +1,7 @@
 require('dotenv').config();
-const config = require('./config');
 const express = require('express');
 const helmet = require('helmet');
+const { api } = require('./config');
 
 const db = require('./src/db');
 const setRouters = require('./src/routers');
@@ -25,8 +25,8 @@ const initServer = () => {
 
     setRouters(app);
 
-    app.listen(config.port, () => {
-        console.log(`Server running on port ${config.port}`);
+    app.listen(api.port, () => {
+        console.log(`Server running on port ${api.port}`);
     });
 };
 

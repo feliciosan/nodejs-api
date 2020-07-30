@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const UserDao = require('../dao/user');
-const { to, handleError } = require('../utils');
+const { api } = require('../../config');
+const { handleError, handleException } = require('../utils');
 
 const auth = async (req, res, next) => {
     try {
@@ -8,30 +9,23 @@ const auth = async (req, res, next) => {
         const token = headerAuth.replace('Bearer ', '');
 
         if (!token) {
-            return handleError(res, {
-                code: 401,
-                message: 'Not authorized.',
-                status: 'error',
-            });
+            throw handleException(401, 'Not authorized.');
         }
 
-        const data = jwt.verify(token, process.env.APP_SECRET_KEY);
-        const [errorOnFindUser, user] = await to(UserDao.find({ id: data.id }));
-
-        if (errorOnFindUser) {
-            return handleError(res, errorOnFindUser);
-        }
+        const data = jwt.verify(token, api.secret_key);
+        const user = await UserDao.find({
+            id: data.id,
+        });
 
         if (!user) {
-            return handleError(res, {
-                code: 401,
-                message: 'Not authorized.',
-                status: 'error',
-            });
+            throw handleException(401, 'Not authorized.');
         }
 
-        req.user = { id: user.id };
-        next();
+        req.user = {
+            id: user.id,
+        };
+
+        return next();
     } catch (error) {
         handleError(res, error);
     }

@@ -1,7 +1,8 @@
 const UserDao = require('../dao/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { to, handleResponse, handleError } = require('../utils');
+const { api } = require('../../config');
+const { handleResponse, handleError, handleException } = require('../utils');
 
 const signIn = async (req, res) => {
     try {
@@ -9,31 +10,21 @@ const signIn = async (req, res) => {
             email: req.body.email,
         };
 
-        const [errorOnFindUser, user] = await to(UserDao.find(userfilter));
+        const user = await UserDao.find(userfilter);
 
-        if (errorOnFindUser) {
-            return handleError(res, errorOnFindUser);
+        if (!user) {
+            throw handleException(400, 'Invalid credentials.');
         }
 
-        if (user) {
-            const match = await bcrypt.compare(req.body.password, user.password);
+        const match = await bcrypt.compare(req.body.password, user.password);
 
-            if (match) {
-                const token = jwt.sign({ id: user.id }, process.env.APP_SECRET_KEY, {
-                    expiresIn: '24h',
-                });
-
-                return handleResponse(res, {
-                    token: token,
-                });
-            }
+        if (!match) {
+            throw handleException(400, 'Invalid credentials.');
         }
 
-        handleError(res, {
-            code: 400,
-            message: 'Invalid credentials.',
-            status: 'error',
-        });
+        const token = jwt.sign({ id: user.id }, api.secret_key, { expiresIn: '24h' });
+
+        handleResponse(res, 200, token);
     } catch (error) {
         handleError(res, error);
     }
@@ -49,32 +40,19 @@ const create = async (req, res) => {
             email: req.body.email,
         };
 
-        const [errorOnCountUser, userExists] = await to(UserDao.count(userFilter));
-
-        if (errorOnCountUser) {
-            return handleError(res, errorOnCountUser);
-        }
+        const userExists = await UserDao.count(userFilter);
 
         if (userExists) {
-            return handleError(res, {
-                code: 409,
-                message: 'Email already in use.',
-            });
+            throw handleException(409, 'Email already in use.');
         }
 
         userBody.password = await getEncryptedPassword(req.body.password);
 
-        const [errorOnCreateUser, userCreated] = await to(UserDao.create(userBody));
+        const userCreated = await UserDao.create(userBody);
 
-        if (errorOnCreateUser) {
-            return handleError(res, errorOnCreateUser);
-        }
-
-        handleResponse(res, {
-            user: {
-                id: userCreated.id,
-                name: userCreated.name,
-            },
+        handleResponse(res, 201, {
+            id: userCreated.id,
+            name: userCreated.name,
         });
     } catch (error) {
         handleError(res, error);

@@ -1,15 +1,14 @@
 const { Sequelize, DataTypes } = require('sequelize');
-const config = require('../../config');
+const { db } = require('../../config');
+const defineModels = require('../models');
 
-const sequelize = new Sequelize(config.name, config.user, config.password, {
-    host: config.host,
-    dialect: 'postgres',
-    port: 5432,
+const sequelize = new Sequelize(db.name, db.user, db.password, {
+    host: db.host,
+    dialect: db.dialect,
+    port: db.port,
     logging: false,
 });
 
-const startModels = require('../models');
-
-startModels(sequelize, DataTypes);
+defineModels(sequelize, DataTypes);
 
 module.exports = sequelize;

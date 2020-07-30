@@ -1,26 +1,24 @@
-const handleResponse = (res, data) => {
-    res.send(data);
+const handleResponse = (res, code, data) => {
+    res.status(code || 200);
+    res.send({
+        data: data || {},
+    });
 };
 
 const handleError = (res, error) => {
-    res.status(error.code || 500).send(error);
+    res.status(error.code || 500);
+    res.send(error);
 };
 
-const parseError = (error) => {
+const handleException = (code, message) => {
     return {
-        code: 500,
-        message: error.message,
-        status: 'error',
+        code: code || 500,
+        message: message,
     };
 };
 
-const to = (promise) => {
-    return promise.then((data) => [null, data]).catch((error) => [error, null]);
-};
-
 module.exports = {
-    to: to,
     handleError: handleError,
-    parseError: parseError,
     handleResponse: handleResponse,
+    handleException: handleException,
 };

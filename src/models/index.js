@@ -1,6 +1,13 @@
 module.exports = (sequelize, DataTypes) => {
-    const User = require('./user')(sequelize, DataTypes);
-    const Product = require('./product')(sequelize, DataTypes);
+    const UserModel = require('./user');
+    const ProductModel = require('./product');
 
-    Product.belongsTo(User, { foreignKey: 'user_id' });
+    const models = {};
+
+    models.user = UserModel(sequelize, DataTypes);
+
+    models.product = ProductModel(sequelize, DataTypes);
+    models.product.belongsTo(models.user, {
+        foreignKey: 'user_id',
+    });
 };

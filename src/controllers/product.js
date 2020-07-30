@@ -1,5 +1,5 @@
 const ProductDao = require('../dao/product');
-const { to, handleResponse, handleError } = require('../utils');
+const { handleResponse, handleError } = require('../utils');
 
 const create = async (req, res) => {
     try {
@@ -10,15 +10,9 @@ const create = async (req, res) => {
             user_id: req.user.id,
         };
 
-        const [errorOnCreateProduct, productCreated] = await to(ProductDao.create(productBody));
+        await ProductDao.create(productBody);
 
-        if (errorOnCreateProduct) {
-            return handleError(res, errorOnCreateProduct);
-        }
-
-        handleResponse(res, {
-            product: productCreated,
-        });
+        handleResponse(res, 201, true);
     } catch (error) {
         handleError(res, error);
     }
@@ -30,15 +24,9 @@ const findAll = async (req, res) => {
             user_id: req.user.id,
         };
 
-        const [errorOnFindProducts, products] = await to(ProductDao.findAll(productFilter));
+        const products = await ProductDao.findAll(productFilter);
 
-        if (errorOnFindProducts) {
-            return handleError(res, errorOnFindProducts);
-        }
-
-        handleResponse(res, {
-            products: products,
-        });
+        handleResponse(res, 200, products);
     } catch (error) {
         handleError(res, error);
     }
@@ -56,15 +44,9 @@ const update = async (req, res) => {
             price: req.body.price,
         };
 
-        const [errorOnUpdateProduct, productUpdated] = await to(ProductDao.update(productFilter, productBody));
+        const productUpdated = await ProductDao.update(productFilter, productBody);
 
-        if (errorOnUpdateProduct) {
-            return handleError(res, errorOnUpdateProduct);
-        }
-
-        handleResponse(res, {
-            updated: productUpdated,
-        });
+        handleResponse(res, 200, productUpdated);
     } catch (error) {
         handleError(res, error);
     }
@@ -77,15 +59,9 @@ const remove = async (req, res) => {
             user_id: req.user.id,
         };
 
-        const [errorOnRemoveProduct, productRemoved] = await to(ProductDao.remove(productFilter));
+        const productRemoved = await ProductDao.remove(productFilter);
 
-        if (errorOnRemoveProduct) {
-            return handleError(res, errorOnRemoveProduct);
-        }
-
-        handleResponse(res, {
-            removed: productRemoved,
-        });
+        handleResponse(res, 200, productRemoved);
     } catch (error) {
         handleError(res, error);
     }
